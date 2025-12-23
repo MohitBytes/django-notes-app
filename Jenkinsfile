@@ -35,14 +35,25 @@ pipeline {
         }
 
         stage("Deploy") {
-            steps {
-                echo "Deploying application"
-                sh """
-                    docker ps -q --filter "publish=8000" | xargs -r docker stop
-                    docker ps -aq --filter "publish=8000" | xargs -r docker rm
-                """
-                sh "docker compose down && docker compose up"
-            }
-        }
+    steps {
+        echo "Deploying application"
+        sh '''
+            set -x
+
+            echo "Stopping old containers..."
+            docker ps -q --filter "publish=8000" | xargs -r docker stop || true
+            docker ps -aq --filter "publish=8000" | xargs -r docker rm || true
+
+            echo "Bringing down compose stack..."
+            docker compose down || true
+
+            echo "Starting new containers..."
+            timeout 120 docker compose up -d
+
+            echo "Deployment status:"
+            docker ps
+        '''
+    }
+}
     }
 }
