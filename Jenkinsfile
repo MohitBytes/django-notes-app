@@ -40,8 +40,8 @@ pipeline {
                 sh """
                     docker ps -q --filter "publish=8000" | xargs -r docker stop
                     docker ps -aq --filter "publish=8000" | xargs -r docker rm
-                    docker compose up -d
                 """
+                sh "docker compose down && docker compose up"
             }
         }
     }
